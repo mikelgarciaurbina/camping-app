@@ -1,188 +1,296 @@
-import React from 'react';
+import React from "react";
 import {
+  Dimensions,
   Image,
+  ImageBackground,
   Platform,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-} from 'react-native';
-import { WebBrowser } from 'expo';
+  View
+} from "react-native";
+import { MapView } from "expo";
+import { Ionicons, FontAwesome, SimpleLineIcons } from "@expo/vector-icons";
 
-import { MonoText } from '../components/StyledText';
+import { MonoText } from "../components/StyledText";
+
+const { height, width } = Dimensions.get("screen");
 
 export default class Campings extends React.Component {
   static navigationOptions = {
-    header: null,
+    header: null
   };
 
-  render() {
+  state = {
+    active: "all"
+  };
+
+  renderHeader() {
     return (
-      <View style={styles.container}>
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-          <View style={styles.welcomeContainer}>
-            <Image
-              source={
-                __DEV__
-                  ? require('../assets/images/robot-dev.png')
-                  : require('../assets/images/robot-prod.png')
-              }
-              style={styles.welcomeImage}
-            />
-          </View>
-
-          <View style={styles.getStartedContainer}>
-            {this._maybeRenderDevelopmentModeWarning()}
-
-            <Text style={styles.getStartedText}>Get started by opening</Text>
-
-            <View style={[styles.codeHighlightContainer, styles.homeScreenFilename]}>
-              <MonoText style={styles.codeHighlightText}>screens/Campings.js</MonoText>
+      <View style={styles.headerContainer}>
+        <View style={styles.header}>
+          <View style={{ flex: 2, flexDirection: "row" }}>
+            <View style={styles.settings}>
+              <View style={styles.location}>
+                <FontAwesome name="location-arrow" size={14} color="white" />
+              </View>
             </View>
-
-            <Text style={styles.getStartedText}>
-              Change this text and your app will automatically reload.
-            </Text>
+            <View style={styles.options}>
+              <Text style={{ fontSize: 12, color: "#A5A5A5", marginBottom: 5 }}>
+                Detected Location
+              </Text>
+              <Text style={{ fontSize: 14, fontWeight: "300" }}>
+                Northern Island
+              </Text>
+            </View>
           </View>
-
-          <View style={styles.helpContainer}>
-            <TouchableOpacity onPress={this._handleHelpPress} style={styles.helpLink}>
-              <Text style={styles.helpLinkText}>Help, it didn’t automatically reload!</Text>
+          <View style={styles.settings}>
+            <TouchableOpacity
+              onPress={() => this.props.navigation.navigate("Settings")}
+            >
+              <Ionicons name="ios-settings" size={24} color="black" />
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </View>
+        {this.renderTabs()}
+      </View>
+    );
+  }
 
-        <View style={styles.tabBarInfoContainer}>
-          <Text style={styles.tabBarInfoText}>This is a tab bar. You can edit it in:</Text>
+  renderMap() {
+    return (
+      <View style={styles.map}>
+        <MapView
+          style={{ flex: 1, height: height * 0.5, width }}
+          initialRegion={{
+            latitude: 37.78825,
+            longitude: -122.4324,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421
+          }}
+        />
+      </View>
+    );
+  }
 
-          <View style={[styles.codeHighlightContainer, styles.navigationFilename]}>
-            <MonoText style={styles.codeHighlightText}>navigation/MainTabNavigator.js</MonoText>
-          </View>
+  renderTabs() {
+    const { active } = this.state;
+
+    return (
+      <View style={styles.tabs}>
+        <View style={[styles.tab, active === "all" ? styles.tabActive : null]}>
+          <Text
+            onPress={() => this.setState({ active: "all" })}
+            style={[
+              styles.tabTitle,
+              active === "all" ? styles.tabActiveTitle : null
+            ]}
+          >
+            All Spots
+          </Text>
+        </View>
+        <View style={[styles.tab, active === "tent" ? styles.tabActive : null]}>
+          <Text
+            onPress={() => this.setState({ active: "tent" })}
+            style={[
+              styles.tabTitle,
+              active === "tent" ? styles.tabActiveTitle : null
+            ]}
+          >
+            Tenting
+          </Text>
+        </View>
+        <View style={[styles.tab, active === "rv" ? styles.tabActive : null]}>
+          <Text
+            onPress={() => this.setState({ active: "rv" })}
+            style={[
+              styles.tabTitle,
+              active === "rv" ? styles.tabActiveTitle : null
+            ]}
+          >
+            RV Camping
+          </Text>
         </View>
       </View>
     );
   }
 
-  _maybeRenderDevelopmentModeWarning() {
-    if (__DEV__) {
-      const learnMoreButton = (
-        <Text onPress={this._handleLearnMorePress} style={styles.helpLinkText}>
-          Learn more
-        </Text>
-      );
+  renderList() {
+    const campings = [
+      {
+        id: 1,
+        name: "Camping Paradise",
+        description: "Popular spot for local trekkers.",
+        rating: 4.9,
+        distance: 2.0,
+        price: "Free",
+        image:
+          "https://images.unsplash.com/photo-1525811902-f2342640856e?fit=crop&w=900&h=600&q=130"
+      },
+      {
+        id: 2,
+        name: "Lake Florida",
+        description: "This is for all sunset lovers.",
+        rating: 4.9,
+        distance: 2.9,
+        price: "Free",
+        image:
+          "https://images.unsplash.com/photo-1506535995048-638aa1b62b77?fit=crop&w=900&h=600&q=130"
+      }
+    ];
 
-      return (
-        <Text style={styles.developmentModeText}>
-          Development mode is enabled, your app will be slower but you can use useful development
-          tools. {learnMoreButton}
-        </Text>
-      );
-    } else {
-      return (
-        <Text style={styles.developmentModeText}>
-          You are not in development mode, your app will run at full speed.
-        </Text>
-      );
-    }
+    return campings.map(camping => (
+      <View key={camping.id} style={styles.camping}>
+        <ImageBackground
+          imageStyle={styles.campingImage}
+          source={{ uri: camping.image }}
+          style={styles.campingImage}
+        />
+        <View style={styles.campingDetails}>
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "column",
+              justifyContent: "center"
+            }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: "bold" }}>
+              {camping.name}
+            </Text>
+            <Text
+              style={{
+                fontSize: 12,
+                color: "#A5A5A5",
+                paddingTop: 5
+              }}
+            >
+              {camping.description}
+            </Text>
+          </View>
+          <View style={{ flex: 1, flexDirection: "row" }}>
+            <View style={styles.campingInfo}>
+              <FontAwesome name="star" color="#FFBA5A" size={12} />
+              <Text style={{ color: "#FFBA5A", marginLeft: 4 }}>
+                {camping.rating}
+              </Text>
+            </View>
+            <View style={styles.campingInfo}>
+              <FontAwesome name="location-arrow" color="#FF7657" size={12} />
+              <Text style={{ color: "#FF7657", marginLeft: 4 }}>{`${
+                camping.distance
+              } miles`}</Text>
+            </View>
+            <View style={styles.campingInfo}>
+              <Ionicons name="md-pricetag" color="black" size={12} />
+              <Text style={{ color: "black", marginLeft: 4 }}>
+                {camping.price}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View style={{ flex: 0.2, justifyContent: "center" }}>
+          <SimpleLineIcons name="options-vertical" color="#A5A5A5" size={24} />
+        </View>
+      </View>
+    ));
   }
 
-  _handleLearnMorePress = () => {
-    WebBrowser.openBrowserAsync('https://docs.expo.io/versions/latest/guides/development-mode');
-  };
-
-  _handleHelpPress = () => {
-    WebBrowser.openBrowserAsync(
-      'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
+  render() {
+    return (
+      <SafeAreaView style={styles.container}>
+        {this.renderHeader()}
+        <ScrollView style={styles.container}>
+          {this.renderMap()}
+          {this.renderList()}
+        </ScrollView>
+      </SafeAreaView>
     );
-  };
+  }
 }
 
 const styles = StyleSheet.create({
+  camping: {
+    flex: 1,
+    flexDirection: "row",
+    borderBottomColor: "#A5A5A5",
+    borderBottomWidth: 0.5,
+    padding: 20
+  },
+  campingDetails: {
+    flex: 2,
+    flexDirection: "column",
+    justifyContent: "space-around",
+    paddingLeft: 20
+  },
+  campingImage: {
+    borderRadius: 6,
+    height: width * 0.25,
+    width: width * 0.3
+  },
+  campingInfo: {
+    alignItems: "center",
+    flexDirection: "row",
+    marginRight: 14
+  },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff"
   },
-  developmentModeText: {
-    marginBottom: 20,
-    color: 'rgba(0,0,0,0.4)',
+  header: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    height: height * 0.15,
+    justifyContent: "center",
+    paddingHorizontal: 14
+  },
+  headerContainer: {
+    height: height * 0.15,
+    width
+  },
+  location: {
+    alignItems: "center",
+    backgroundColor: "#FF7657",
+    borderRadius: 14,
+    height: 24,
+    justifyContent: "center",
+    width: 24
+  },
+  map: {
+    flex: 1
+  },
+  options: {
+    flex: 1,
+    paddingHorizontal: 14
+  },
+  settings: {
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  tab: {
+    borderBottomColor: "transparent",
+    borderBottomWidth: 2,
+    marginHorizontal: 10,
+    paddingHorizontal: 14
+  },
+  tabs: {
+    alignItems: "flex-end",
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center"
+  },
+  tabActive: {
+    borderBottomColor: "#FF7657",
+    borderBottomWidth: 2
+  },
+  tabActiveTitle: {
+    color: "#FF7657"
+  },
+  tabTitle: {
     fontSize: 14,
-    lineHeight: 19,
-    textAlign: 'center',
-  },
-  contentContainer: {
-    paddingTop: 30,
-  },
-  welcomeContainer: {
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  welcomeImage: {
-    width: 100,
-    height: 80,
-    resizeMode: 'contain',
-    marginTop: 3,
-    marginLeft: -10,
-  },
-  getStartedContainer: {
-    alignItems: 'center',
-    marginHorizontal: 50,
-  },
-  homeScreenFilename: {
-    marginVertical: 7,
-  },
-  codeHighlightText: {
-    color: 'rgba(96,100,109, 0.8)',
-  },
-  codeHighlightContainer: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderRadius: 3,
-    paddingHorizontal: 4,
-  },
-  getStartedText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  tabBarInfoContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: { height: -3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 20,
-      },
-    }),
-    alignItems: 'center',
-    backgroundColor: '#fbfbfb',
-    paddingVertical: 20,
-  },
-  tabBarInfoText: {
-    fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    textAlign: 'center',
-  },
-  navigationFilename: {
-    marginTop: 5,
-  },
-  helpContainer: {
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  helpLink: {
-    paddingVertical: 15,
-  },
-  helpLinkText: {
-    fontSize: 14,
-    color: '#2e78b7',
-  },
+    fontWeight: "bold",
+    marginBottom: 10
+  }
 });
